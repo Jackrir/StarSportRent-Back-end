@@ -1,3 +1,4 @@
+using DataAccessLayer.Interfaces;
 using DataAccessLayer.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,6 +30,7 @@ namespace StarSportRent
         {
             services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            services.AddScoped<IRepository, Repository>();
 
             services.BuildServiceProvider().GetService<AppDbContext>().Database.Migrate();
         }
