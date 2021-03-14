@@ -87,15 +87,10 @@ namespace DataAccessLayer.Migrations
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TypeId")
-                        .HasColumnType("int");
-
                     b.Property<string>("URLphoto")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ItemId");
-
-                    b.HasIndex("TypeId");
 
                     b.ToTable("Items");
                 });
@@ -183,6 +178,21 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("Tokens");
                 });
 
+            modelBuilder.Entity("DataAccessLayer.Models.Entyties.TypeItem", b =>
+                {
+                    b.Property<int>("TypeId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.HasKey("TypeId", "ItemId");
+
+                    b.HasIndex("ItemId");
+
+                    b.ToTable("TypeItems");
+                });
+
             modelBuilder.Entity("DataAccessLayer.Models.Entyties.TypeOfItem", b =>
                 {
                     b.Property<int>("TypeId")
@@ -249,17 +259,6 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("DataAccessLayer.Models.Entyties.Item", b =>
-                {
-                    b.HasOne("DataAccessLayer.Models.Entyties.TypeOfItem", "Type")
-                        .WithMany("Items")
-                        .HasForeignKey("TypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Type");
-                });
-
             modelBuilder.Entity("DataAccessLayer.Models.Entyties.ItemsInRent", b =>
                 {
                     b.HasOne("DataAccessLayer.Models.Entyties.Item", "Item")
@@ -312,6 +311,25 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("DataAccessLayer.Models.Entyties.TypeItem", b =>
+                {
+                    b.HasOne("DataAccessLayer.Models.Entyties.Item", "Item")
+                        .WithMany("TypeItems")
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DataAccessLayer.Models.Entyties.TypeOfItem", "Type")
+                        .WithMany("TypeItems")
+                        .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Type");
+                });
+
             modelBuilder.Entity("DataAccessLayer.Models.Entyties.TypeOfItem", b =>
                 {
                     b.HasOne("DataAccessLayer.Models.Entyties.Category", "Category")
@@ -335,6 +353,8 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("ItemsInRents");
 
                     b.Navigation("Maintenances");
+
+                    b.Navigation("TypeItems");
                 });
 
             modelBuilder.Entity("DataAccessLayer.Models.Entyties.Rent", b =>
@@ -344,7 +364,7 @@ namespace DataAccessLayer.Migrations
 
             modelBuilder.Entity("DataAccessLayer.Models.Entyties.TypeOfItem", b =>
                 {
-                    b.Navigation("Items");
+                    b.Navigation("TypeItems");
                 });
 
             modelBuilder.Entity("DataAccessLayer.Models.Entyties.User", b =>

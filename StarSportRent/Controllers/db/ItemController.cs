@@ -44,7 +44,6 @@ namespace PresentationLayer.Controllers.db
 
             Item newItem = new Item
             {
-                TypeId = item.TypeId,
                 Name = item.Name,
                 Info = item.Info,
                 URLphoto = item.URLphoto,
@@ -68,7 +67,6 @@ namespace PresentationLayer.Controllers.db
                 throw new Exception("Item not found.");
             }
 
-            oldItem.TypeId = item.TypeId;
             oldItem.Name = item.Name;
             oldItem.Info = item.Info;
             oldItem.URLphoto = item.URLphoto;

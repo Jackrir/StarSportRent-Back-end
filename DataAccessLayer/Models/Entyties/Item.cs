@@ -11,10 +11,6 @@ namespace DataAccessLayer.Models.Entyties
         [Key]
         public int ItemId { get; set; }
 
-        public int TypeId { get; set; }
-
-        public TypeOfItem Type { get; set; }
-
         public string Name { get; set; }
 
         public string URLphoto { get; set; }
@@ -35,5 +31,7 @@ namespace DataAccessLayer.Models.Entyties
         public List<Booking> Bookings { get; set; }
 
         public List<ItemsInRent> ItemsInRents { get; set; }
+
+        public List<TypeItem> TypeItems { get; set; }
     }
 }

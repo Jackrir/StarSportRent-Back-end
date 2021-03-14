@@ -15,6 +15,8 @@ namespace DataAccessLayer.Models
         public DbSet<Category> Categories { get; set; }
         public DbSet<TypeOfItem> TypeOfItems  { get; set; }
         public DbSet<Item> Items { get; set; }
+
+        public DbSet<TypeItem> TypeItems { get; set; }
         public DbSet<Maintenance> Maintenances  { get; set; }
         public DbSet<Booking> Bookings  { get; set; }
         public DbSet<ItemsInRent> ItemsInRents { get; set; }
@@ -45,7 +47,7 @@ namespace DataAccessLayer.Models
                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<TypeOfItem>()
-               .HasMany(q => q.Items)
+               .HasMany(q => q.TypeItems)
                .WithOne(a => a.Type)
                .HasForeignKey(a => a.TypeId)
                .OnDelete(DeleteBehavior.Cascade);
@@ -65,6 +67,11 @@ namespace DataAccessLayer.Models
                .WithOne(a => a.Item)
                .HasForeignKey(a => a.ItemId)
                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Item>()
+               .HasMany(q => q.TypeItems)
+               .WithOne(a => a.Item)
+               .HasForeignKey(a => a.ItemId)
+               .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Rent>()
                .HasMany(q => q.ItemsInRents)
@@ -74,6 +81,8 @@ namespace DataAccessLayer.Models
 
             modelBuilder.Entity<ItemsInRent>()
                 .HasKey(us => new { us.RentId, us.ItemId });
+            modelBuilder.Entity<TypeItem>()
+                .HasKey(us => new { us.TypeId, us.ItemId });
         }
     }
 }

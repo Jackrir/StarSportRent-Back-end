@@ -39,13 +39,13 @@ namespace PresentationLayer.Controllers.db
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add([FromBody] ItemsInRent booking)
+        public async Task<IActionResult> Add([FromBody] ItemsInRent itemsInRent)
         {
 
             ItemsInRent newItemsInRent = new ItemsInRent
             {
-                RentId = booking.RentId,
-                ItemId = booking.ItemId
+                RentId = itemsInRent.RentId,
+                ItemId = itemsInRent.ItemId
             };
 
             await this.repository.AddAsync<ItemsInRent>(newItemsInRent);

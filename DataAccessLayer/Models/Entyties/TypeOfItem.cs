@@ -20,6 +20,6 @@ namespace DataAccessLayer.Models.Entyties
 
         public string Info { get; set; }
 
-        public List<Item> Items { get; set; }
+        public List<TypeItem> TypeItems { get; set; }
     }
 }

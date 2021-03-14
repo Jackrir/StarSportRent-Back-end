@@ -1,3 +1,5 @@
+using BusinessLogicLayer;
+using BusinessLogicLayer.Interfaces;
 using DataAccessLayer.Interfaces;
 using DataAccessLayer.Models;
 using Microsoft.AspNetCore.Builder;
@@ -31,6 +33,8 @@ namespace StarSportRent
             services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
             services.AddScoped<IRepository, Repository>();
+            services.AddScoped<IRentCalculate, RentCalculate>();
+            services.AddScoped<IMobileFunctions, MobileFunctions>();
 
             services.BuildServiceProvider().GetService<AppDbContext>().Database.Migrate();
         }

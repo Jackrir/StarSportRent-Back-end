@@ -22,6 +22,25 @@ namespace DataAccessLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Items",
+                columns: table => new
+                {
+                    ItemId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    URLphoto = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Info = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CostPerHour = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Size = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Items", x => x.ItemId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -55,6 +74,54 @@ namespace DataAccessLayer.Migrations
                         column: x => x.CategoryId,
                         principalTable: "Categories",
                         principalColumn: "CategoryId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Maintenances",
+                columns: table => new
+                {
+                    MaintenanceId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ItemId = table.Column<int>(type: "int", nullable: false),
+                    StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FinishTime = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Maintenances", x => x.MaintenanceId);
+                    table.ForeignKey(
+                        name: "FK_Maintenances_Items_ItemId",
+                        column: x => x.ItemId,
+                        principalTable: "Items",
+                        principalColumn: "ItemId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Bookings",
+                columns: table => new
+                {
+                    BookingId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    ItemId = table.Column<int>(type: "int", nullable: false),
+                    FinishBooking = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Bookings", x => x.BookingId);
+                    table.ForeignKey(
+                        name: "FK_Bookings_Items_ItemId",
+                        column: x => x.ItemId,
+                        principalTable: "Items",
+                        principalColumn: "ItemId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Bookings_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -101,55 +168,26 @@ namespace DataAccessLayer.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Items",
+                name: "TypeItems",
                 columns: table => new
                 {
-                    ItemId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
                     TypeId = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    URLphoto = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Info = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CostPerHour = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Cost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Size = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    ItemId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Items", x => x.ItemId);
+                    table.PrimaryKey("PK_TypeItems", x => new { x.TypeId, x.ItemId });
                     table.ForeignKey(
-                        name: "FK_Items_TypeOfItems_TypeId",
-                        column: x => x.TypeId,
-                        principalTable: "TypeOfItems",
-                        principalColumn: "TypeId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Bookings",
-                columns: table => new
-                {
-                    BookingId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    ItemId = table.Column<int>(type: "int", nullable: false),
-                    FinishBooking = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Bookings", x => x.BookingId);
-                    table.ForeignKey(
-                        name: "FK_Bookings_Items_ItemId",
+                        name: "FK_TypeItems_Items_ItemId",
                         column: x => x.ItemId,
                         principalTable: "Items",
                         principalColumn: "ItemId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Bookings_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "UserId",
+                        name: "FK_TypeItems_TypeOfItems_TypeId",
+                        column: x => x.TypeId,
+                        principalTable: "TypeOfItems",
+                        principalColumn: "TypeId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -177,27 +215,6 @@ namespace DataAccessLayer.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Maintenances",
-                columns: table => new
-                {
-                    MaintenanceId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ItemId = table.Column<int>(type: "int", nullable: false),
-                    StartTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    FinishTime = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Maintenances", x => x.MaintenanceId);
-                    table.ForeignKey(
-                        name: "FK_Maintenances_Items_ItemId",
-                        column: x => x.ItemId,
-                        principalTable: "Items",
-                        principalColumn: "ItemId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Bookings_ItemId",
                 table: "Bookings",
@@ -207,11 +224,6 @@ namespace DataAccessLayer.Migrations
                 name: "IX_Bookings_UserId",
                 table: "Bookings",
                 column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Items_TypeId",
-                table: "Items",
-                column: "TypeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ItemsInRents_ItemId",
@@ -227,6 +239,11 @@ namespace DataAccessLayer.Migrations
                 name: "IX_Rents_UserId",
                 table: "Rents",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TypeItems_ItemId",
+                table: "TypeItems",
+                column: "ItemId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TypeOfItems_CategoryId",
@@ -249,16 +266,19 @@ namespace DataAccessLayer.Migrations
                 name: "Tokens");
 
             migrationBuilder.DropTable(
+                name: "TypeItems");
+
+            migrationBuilder.DropTable(
                 name: "Rents");
 
             migrationBuilder.DropTable(
                 name: "Items");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "TypeOfItems");
 
             migrationBuilder.DropTable(
-                name: "TypeOfItems");
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Categories");
