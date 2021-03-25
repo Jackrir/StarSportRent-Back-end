@@ -1,4 +1,5 @@
-﻿using DataAccessLayer.Interfaces;
+﻿using BusinessLogicLayer.Models;
+using DataAccessLayer.Interfaces;
 using DataAccessLayer.Models.Entyties;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,64 +22,156 @@ namespace PresentationLayer.Controllers.db
         }
 
         [HttpGet]
-        public async Task<IEnumerable<Rent>> Get()
+        public async Task<IActionResult> Get()
         {
-            IEnumerable<Rent> rent = await this.repository.GetRangeAsync<Rent>(true, x => true);
-            return rent.ToArray();
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
+            {
+                if (role == "admin")
+                {
+                    IEnumerable<Rent> rent = await this.repository.GetRangeAsync<Rent>(true, x => true);
+                    foreach (Rent item in rent)
+                    {
+                        item.ItemsInRents = null;
+                        item.User = null;
+                    }
+                    return this.Ok(rent.ToArray());
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
+            }
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<Rent> GetId(int id)
+        public async Task<IActionResult> GetId(int id)
         {
-            Rent rent = await this.repository.GetAsync<Rent>(true, x => x.RentId == id);
-            if (rent == null)
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
             {
-                throw new Exception("Rent not found.");
+                if (role == "admin")
+                {
+                    Rent rent = await this.repository.GetAsync<Rent>(true, x => x.RentId == id);
+                    if (rent == null)
+                    {
+                        return this.NotFound(new ErrorMessage { message = "Rent not found." });
+                    }
+                    rent.ItemsInRents = null;
+                    rent.User = null;
+                    return this.Ok(rent);
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
             }
-            return rent;
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] Rent rent)
         {
-
-            Rent newRent = new Rent
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
             {
-                UserId = rent.UserId,
-                StartTime = DateTime.UtcNow,
-                FinishTime = rent.FinishTime,
-                Status = "Rent"
-            };
+                if (role == "admin")
+                {
+                    Rent newRent = new Rent
+                    {
+                        UserId = rent.UserId,
+                        StartTime = rent.StartTime,
+                        FinishTime = rent.FinishTime,
+                        Status = "Rent"
+                    };
 
-            await this.repository.AddAsync<Rent>(newRent);
+                    await this.repository.AddAsync<Rent>(newRent);
 
-            return this.Ok();
+                    return this.Ok();
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
+            }
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
+
+            
         }
 
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] Rent rent)
         {
-            Rent oldRent = await this.repository.GetAsync<Rent>(true, x => x.RentId == rent.RentId);
-            if (oldRent == null)
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
             {
-                throw new Exception("Rent not found.");
+                if (role == "admin")
+                {
+                    Rent oldRent = await this.repository.GetAsync<Rent>(true, x => x.RentId == rent.RentId);
+                    if (oldRent == null)
+                    {
+                        throw new Exception("Rent not found.");
+                    }
+
+                    oldRent.UserId = rent.UserId;
+                    oldRent.StartTime = rent.StartTime;
+                    oldRent.FinishTime = rent.FinishTime;
+                    oldRent.Status = rent.Status;
+
+                    await this.repository.UpdateAsync<Rent>(oldRent);
+                    return this.Ok();
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
             }
-
-            oldRent.UserId = rent.UserId;
-            oldRent.StartTime = rent.StartTime;
-            oldRent.FinishTime = rent.FinishTime;
-            oldRent.Status = rent.Status;
-
-            await this.repository.UpdateAsync<Rent>(oldRent);
-            return this.Ok();
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
+            
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            Rent rent = await this.repository.GetAsync<Rent>(true, x => x.RentId == id);
-            await this.repository.DeleteAsync<Rent>(rent);
-            return this.Ok();
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
+            {
+                if (role == "admin")
+                {
+                    Rent rent = await this.repository.GetAsync<Rent>(true, x => x.RentId == id);
+                    await this.repository.DeleteAsync<Rent>(rent);
+                    return this.Ok();
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
+            }
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
+            
+        }
+
+        public string TokenFromHeader(HttpRequest request)
+        {
+            var re = Request;
+            var headers = re.Headers;
+            string token = "";
+            if (headers.ContainsKey("token"))
+            {
+                token = headers["token"];
+            }
+            return token;
         }
     }
 }

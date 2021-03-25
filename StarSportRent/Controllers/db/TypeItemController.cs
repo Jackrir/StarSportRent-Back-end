@@ -1,4 +1,5 @@
-﻿using DataAccessLayer.Interfaces;
+﻿using BusinessLogicLayer.Models;
+using DataAccessLayer.Interfaces;
 using DataAccessLayer.Models.Entyties;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,44 +22,122 @@ namespace PresentationLayer.Controllers.db
         }
 
         [HttpGet]
-        public async Task<IEnumerable<TypeItem>> Get()
+        public async Task<IActionResult> Get()
         {
-            IEnumerable<TypeItem> typeItem = await this.repository.GetRangeAsync<TypeItem>(true, x => true);
-            return typeItem.ToArray();
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
+            {
+                if (role == "admin")
+                {
+                    IEnumerable<TypeItem> typeItem = await this.repository.GetRangeAsync<TypeItem>(true, x => true);
+                    foreach (TypeItem el in typeItem)
+                    {
+                        el.Item = null;
+                        el.Type = null;
+                    }
+                    return this.Ok(typeItem.ToArray());
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
+            }
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
+         
         }
 
         [HttpGet("{idType}/{idItem}")]
-        public async Task<TypeItem> GetId(int idType, int idItem)
+        public async Task<IActionResult> GetId(int idType, int idItem)
         {
-            TypeItem typeItem = await this.repository.GetAsync<TypeItem>(true, x => x.TypeId == idType && x.ItemId == idItem);
-            if (typeItem == null)
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
             {
-                throw new Exception("TypeItem not found.");
+                if (role == "admin")
+                {
+                    TypeItem typeItem = await this.repository.GetAsync<TypeItem>(true, x => x.TypeId == idType && x.ItemId == idItem);
+                    if (typeItem == null)
+                    {
+                        return this.NotFound(new ErrorMessage { message = "TypeItem not found." });
+                    }
+                    typeItem.Item = null;
+                    typeItem.Type = null;
+                    return this.Ok(typeItem);
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
             }
-            return typeItem;
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
+            
         }
 
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] TypeItem typeItem)
         {
-
-            TypeItem newTypeItem = new TypeItem
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
             {
-                TypeId = typeItem.TypeId,
-                ItemId = typeItem.ItemId
-            };
+                if (role == "admin")
+                {
+                    TypeItem newTypeItem = new TypeItem
+                    {
+                        TypeId = typeItem.TypeId,
+                        ItemId = typeItem.ItemId
+                    };
 
-            await this.repository.AddAsync<TypeItem>(newTypeItem);
+                    await this.repository.AddAsync<TypeItem>(newTypeItem);
 
-            return this.Ok();
+                    return this.Ok();
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
+            }
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
+            
         }
 
         [HttpDelete("{idType}/{idItem}")]
         public async Task<IActionResult> Delete(int idType, int idItem)
         {
-            TypeItem typeItem = await this.repository.GetAsync<TypeItem>(true, x => x.TypeId == idType && x.ItemId == idItem);
-            await this.repository.DeleteAsync<TypeItem>(typeItem);
-            return this.Ok();
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
+            {
+                if (role == "admin")
+                {
+                    TypeItem typeItem = await this.repository.GetAsync<TypeItem>(true, x => x.TypeId == idType && x.ItemId == idItem);
+                    await this.repository.DeleteAsync<TypeItem>(typeItem);
+                    return this.Ok();
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
+            }
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
+            
+        }
+
+        public string TokenFromHeader(HttpRequest request)
+        {
+            var re = Request;
+            var headers = re.Headers;
+            string token = "";
+            if (headers.ContainsKey("token"))
+            {
+                token = headers["token"];
+            }
+            return token;
         }
     }
 }

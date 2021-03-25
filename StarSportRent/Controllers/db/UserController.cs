@@ -1,4 +1,5 @@
-﻿using DataAccessLayer.Interfaces;
+﻿using BusinessLogicLayer.Models;
+using DataAccessLayer.Interfaces;
 using DataAccessLayer.Models.Entyties;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,71 +22,161 @@ namespace PresentationLayer.Controllers.db
         }
 
         [HttpGet]
-        public async Task<IEnumerable<User>> Get()
+        public async Task<IActionResult> Get()
         {
-            IEnumerable<User> user = await this.repository.GetRangeAsync<User>(true, x => true);
-            return user.ToArray();
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
+            {
+                if(role == "admin")
+                {
+                    IEnumerable<User> user = await this.repository.GetRangeAsync<User>(true, x => true);
+                    foreach(User item in user)
+                    {
+                        item.Bookings = null;
+                        item.Rents = null;
+                        item.Token = null;
+                    }
+                    return this.Ok(user.ToArray());
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
+            }
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<User> GetId(int id)
+        public async Task<IActionResult> GetId(int id)
         {
-            User user = await this.repository.GetAsync<User>(true, x => x.UserId == id);
-            if (user == null)
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
             {
-                throw new Exception("User not found.");
+                if (role == "admin")
+                {
+                    User user = await this.repository.GetAsync<User>(true, x => x.UserId == id);
+                    if (user == null)
+                    {
+                        return this.NotFound(new ErrorMessage { message = "User not found." });
+                    }
+                    user.Bookings = null;
+                    user.Rents = null;
+                    user.Token = null;
+                    return this.Ok(user);
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
             }
-            return user;
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] User user)
         {
-            User chakingByEmailUser = await this.repository.GetAsync<User>(true, x => x.Email == user.Email);
-            if (chakingByEmailUser != null)
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
             {
-                throw new Exception("Mail is used.");
+                if (role == "admin")
+                {
+                    User chakingByEmailUser = await this.repository.GetAsync<User>(true, x => x.Email == user.Email);
+                    if (chakingByEmailUser != null)
+                    {
+                        return this.NotFound(new ErrorMessage { message = "Mail is used." });
+                    }
+                    User newUser = new User
+                    {
+                        Email = user.Email,
+                        Name = user.Name,
+                        Role = user.Role,
+                        Password = service.GetHashString(user.Password)
+                    };
+
+                    User usertoken = await this.repository.AddAsync<User>(newUser);
+                    await this.repository.AddAsync<Token>(new Token { UserId = usertoken.UserId });
+
+                    return this.Ok();
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
             }
-
-            User newUser = new User
+            else
             {
-                Email = user.Email,
-                Name = user.Name,
-                Role = user.Role,
-                Password = user.Password
-            };
-
-            User usertoken = await this.repository.AddAsync<User>(newUser);
-            await this.repository.AddAsync<Token>(new Token { UserId = usertoken.UserId });
-
-            return this.Ok();
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
+            
         }
 
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] User user)
         {
-            User oldUser = await this.repository.GetAsync<User>(true, x => x.UserId == user.UserId);
-            if (oldUser == null)
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
             {
-                throw new Exception("User not found.");
+                if (role == "admin")
+                {
+                    User oldUser = await this.repository.GetAsync<User>(true, x => x.UserId == user.UserId);
+                    if (oldUser == null)
+                    {
+                        return this.NotFound(new ErrorMessage { message = "User not found." });
+                    }
+
+                    oldUser.Name = user.Name;
+                    oldUser.Role = user.Role;
+
+                    await this.repository.UpdateAsync<User>(oldUser);
+                    return this.Ok();
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
             }
-
-            oldUser.Name = user.Name;
-            oldUser.Password = user.Password;
-            oldUser.Role = user.Role;
-
-            await this.repository.UpdateAsync<User>(oldUser);
-            return this.Ok();
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            User user = await this.repository.GetAsync<User>(true, x => x.UserId == id);
-            await this.repository.DeleteAsync<User>(user);
-            Token token = await this.repository.GetAsync<Token>(true, x => x.UserId == id);
-            await this.repository.DeleteAsync<Token>(token);
-            return this.Ok();
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
+            {
+                if (role == "admin")
+                {
+                    User user = await this.repository.GetAsync<User>(true, x => x.UserId == id);
+                    await this.repository.DeleteAsync<User>(user);
+                    Token newtoken = await this.repository.GetAsync<Token>(true, x => x.UserId == id);
+                    await this.repository.DeleteAsync<Token>(newtoken);
+                    return this.Ok();
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
+            }
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
+        }
+
+        public string TokenFromHeader(HttpRequest request)
+        { 
+            var re = Request;
+            var headers = re.Headers;
+            string token = "";
+            if (headers.ContainsKey("token"))
+            {
+                token = headers["token"];
+            }
+            return token;
         }
     }
 }

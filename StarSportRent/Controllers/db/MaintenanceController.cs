@@ -1,4 +1,5 @@
-﻿using DataAccessLayer.Interfaces;
+﻿using BusinessLogicLayer.Models;
+using DataAccessLayer.Interfaces;
 using DataAccessLayer.Models.Entyties;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,62 +22,152 @@ namespace PresentationLayer.Controllers.db
         }
 
         [HttpGet]
-        public async Task<IEnumerable<Maintenance>> Get()
+        public async Task<IActionResult> Get()
         {
-            IEnumerable<Maintenance> maintenance = await this.repository.GetRangeAsync<Maintenance>(true, x => true);
-            return maintenance.ToArray();
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
+            {
+                if (role == "admin")
+                {
+                    IEnumerable<Maintenance> maintenance = await this.repository.GetRangeAsync<Maintenance>(true, x => true);
+                    foreach (Maintenance el in maintenance)
+                    {
+                        el.Item = null;
+                    }
+                    return this.Ok(maintenance.ToArray());
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
+            }
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<Maintenance> GetId(int id)
+        public async Task<IActionResult> GetId(int id)
         {
-            Maintenance maintenance = await this.repository.GetAsync<Maintenance>(true, x => x.MaintenanceId == id);
-            if (maintenance == null)
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
             {
-                throw new Exception("Maintenance not found.");
+                if (role == "admin")
+                {
+                    Maintenance maintenance = await this.repository.GetAsync<Maintenance>(true, x => x.MaintenanceId == id);
+                    if (maintenance == null)
+                    {
+                        return this.NotFound(new ErrorMessage { message = "Maintenance not found." });
+                    }
+
+                    maintenance.Item = null;
+                    return this.Ok(maintenance);
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
             }
-            return maintenance;
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
         }
 
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] Maintenance maintenance)
         {
-
-            Maintenance newMaintenance = new Maintenance
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
             {
-                ItemId = maintenance.ItemId,
-                StartTime = maintenance.StartTime,
-                FinishTime = maintenance.FinishTime
-            };
+                if (role == "admin")
+                {
+                    Maintenance newMaintenance = new Maintenance
+                    {
+                        ItemId = maintenance.ItemId,
+                        StartTime = maintenance.StartTime,
+                        FinishTime = maintenance.FinishTime
+                    };
 
-            await this.repository.AddAsync<Maintenance>(newMaintenance);
+                    await this.repository.AddAsync<Maintenance>(newMaintenance);
 
-            return this.Ok();
+                    return this.Ok();
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
+            }
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
+            
         }
 
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] Maintenance maintenance)
         {
-            Maintenance oldMaintenance = await this.repository.GetAsync<Maintenance>(true, x => x.MaintenanceId == maintenance.MaintenanceId);
-            if (oldMaintenance == null)
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
             {
-                throw new Exception("Maintenance not found.");
+                if (role == "admin")
+                {
+                    Maintenance oldMaintenance = await this.repository.GetAsync<Maintenance>(true, x => x.MaintenanceId == maintenance.MaintenanceId);
+                    if (oldMaintenance == null)
+                    {
+                        return this.NotFound(new ErrorMessage { message = "Maintenance not found." });
+                    }
+
+                    oldMaintenance.ItemId = maintenance.ItemId;
+                    oldMaintenance.StartTime = maintenance.StartTime;
+                    oldMaintenance.FinishTime = maintenance.FinishTime;
+
+                    await this.repository.UpdateAsync<Maintenance>(oldMaintenance);
+                    return this.Ok();
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
             }
-
-            oldMaintenance.ItemId = maintenance.ItemId;
-            oldMaintenance.StartTime = maintenance.StartTime;
-            oldMaintenance.FinishTime = maintenance.FinishTime;
-
-            await this.repository.UpdateAsync<Maintenance>(oldMaintenance);
-            return this.Ok();
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
+            
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            Maintenance maintenance = await this.repository.GetAsync<Maintenance>(true, x => x.MaintenanceId == id);
-            await this.repository.DeleteAsync<Maintenance>(maintenance);
-            return this.Ok();
+            string token = this.TokenFromHeader(Request);
+            AuthService service = new AuthService(repository);
+            var (checktoken, role) = await service.CheckToken(token);
+            if (checktoken)
+            {
+                if (role == "admin")
+                {
+                    Maintenance maintenance = await this.repository.GetAsync<Maintenance>(true, x => x.MaintenanceId == id);
+                    await this.repository.DeleteAsync<Maintenance>(maintenance);
+                    return this.Ok();
+                }
+                return this.NotFound(new ErrorMessage { message = "No admin" });
+            }
+            else
+            {
+                return this.NotFound(new ErrorMessage { message = "token died" });
+            }
+            
+        }
+
+        public string TokenFromHeader(HttpRequest request)
+        {
+            var re = Request;
+            var headers = re.Headers;
+            string token = "";
+            if (headers.ContainsKey("token"))
+            {
+                token = headers["token"];
+            }
+            return token;
         }
     }
 }

@@ -1,5 +1,6 @@
 using BusinessLogicLayer;
 using BusinessLogicLayer.Interfaces;
+using BusinessLogicLayer.Models;
 using DataAccessLayer.Interfaces;
 using DataAccessLayer.Models;
 using Microsoft.AspNetCore.Builder;
@@ -35,8 +36,18 @@ namespace StarSportRent
             services.AddScoped<IRepository, Repository>();
             services.AddScoped<IRentCalculate, RentCalculate>();
             services.AddScoped<IMobileFunctions, MobileFunctions>();
+            services.AddScoped<IAdminAuth, AdminAuth>();
 
             services.BuildServiceProvider().GetService<AppDbContext>().Database.Migrate();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy",
+                    builder => builder
+                        .AllowAnyMethod()
+                        .AllowCredentials()
+                        .SetIsOriginAllowed((host) => true)
+                        .AllowAnyHeader());
+            });
         }
 
 
@@ -52,6 +63,7 @@ namespace StarSportRent
             }
 
             app.UseHttpsRedirection();
+            app.UseCors("CorsPolicy");
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
