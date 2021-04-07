@@ -29,7 +29,7 @@ namespace PresentationLayer.Controllers.db
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
             {
-                if (role == "admin")
+                if (role == "admin" || role == "worker")
                 {
                     IEnumerable<Rent> rent = await this.repository.GetRangeAsync<Rent>(true, x => true);
                     foreach (Rent item in rent)
@@ -55,7 +55,7 @@ namespace PresentationLayer.Controllers.db
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
             {
-                if (role == "admin")
+                if (role == "admin" || role == "worker")
                 {
                     Rent rent = await this.repository.GetAsync<Rent>(true, x => x.RentId == id);
                     if (rent == null)
@@ -119,7 +119,7 @@ namespace PresentationLayer.Controllers.db
                     Rent oldRent = await this.repository.GetAsync<Rent>(true, x => x.RentId == rent.RentId);
                     if (oldRent == null)
                     {
-                        throw new Exception("Rent not found.");
+                        return this.NotFound(new ErrorMessage { message = "Rent not found." });
                     }
 
                     oldRent.UserId = rent.UserId;

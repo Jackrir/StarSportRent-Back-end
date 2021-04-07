@@ -20,6 +20,7 @@ namespace StarSportRent
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.UseWebRoot("Content");
                     webBuilder.UseStartup<Startup>();
                 });
     }

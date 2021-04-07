@@ -57,7 +57,7 @@ namespace PresentationLayer.Controllers.db
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
             {
-                if (role == "admin")
+                if (role == "admin" || role == "worker")
                 {
                     Item item = await this.repository.GetAsync<Item>(true, x => x.ItemId == id);
                     if (item == null)

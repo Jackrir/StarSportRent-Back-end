@@ -29,7 +29,7 @@ namespace PresentationLayer.Controllers.db
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
             {
-                if(role == "admin")
+                if(role == "admin" || role == "worker")
                 {
                     IEnumerable<User> user = await this.repository.GetRangeAsync<User>(true, x => true);
                     foreach(User item in user)
@@ -131,6 +131,7 @@ namespace PresentationLayer.Controllers.db
 
                     oldUser.Name = user.Name;
                     oldUser.Role = user.Role;
+                    oldUser.Email = user.Email;
 
                     await this.repository.UpdateAsync<User>(oldUser);
                     return this.Ok();

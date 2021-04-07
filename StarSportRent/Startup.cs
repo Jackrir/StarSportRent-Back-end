@@ -37,6 +37,9 @@ namespace StarSportRent
             services.AddScoped<IRentCalculate, RentCalculate>();
             services.AddScoped<IMobileFunctions, MobileFunctions>();
             services.AddScoped<IAdminAuth, AdminAuth>();
+            services.AddScoped<IWorkerAuth, WorkerAuth>();
+            services.AddScoped<IImportExport, ImportExport>();
+            services.AddScoped<IWorkerRent, WorkerRent>();
 
             services.BuildServiceProvider().GetService<AppDbContext>().Database.Migrate();
             services.AddCors(options =>
@@ -61,9 +64,11 @@ namespace StarSportRent
             {
                 app.UseHsts();
             }
+            
 
             app.UseHttpsRedirection();
             app.UseCors("CorsPolicy");
+            app.UseStaticFiles();
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
