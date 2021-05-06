@@ -40,6 +40,7 @@ namespace StarSportRent
             services.AddScoped<IWorkerAuth, WorkerAuth>();
             services.AddScoped<IImportExport, ImportExport>();
             services.AddScoped<IWorkerRent, WorkerRent>();
+            services.AddScoped<IAuth, Auth>();
 
             services.BuildServiceProvider().GetService<AppDbContext>().Database.Migrate();
             services.AddCors(options =>

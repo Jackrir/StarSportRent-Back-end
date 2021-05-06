@@ -4,6 +4,7 @@ using DataAccessLayer.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PresentationLayer.API;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,7 +30,7 @@ namespace PresentationLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> Import([FromForm]IFormFile file, [FromServices] IHostingEnvironment hostingEnvironment)
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -65,7 +66,7 @@ namespace PresentationLayer.Controllers
         [HttpGet]
         public async Task<FileResult> Export()
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -83,17 +84,6 @@ namespace PresentationLayer.Controllers
             {
                 throw new Exception();
             }
-        }
-        public string TokenFromHeader(HttpRequest request)
-        {
-            var re = Request;
-            var headers = re.Headers;
-            string token = "";
-            if (headers.ContainsKey("token"))
-            {
-                token = headers["token"];
-            }
-            return token;
         }
     }
 }

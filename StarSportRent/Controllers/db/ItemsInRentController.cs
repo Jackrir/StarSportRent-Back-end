@@ -3,6 +3,7 @@ using DataAccessLayer.Interfaces;
 using DataAccessLayer.Models.Entyties;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PresentationLayer.API;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +25,7 @@ namespace PresentationLayer.Controllers.db
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -51,7 +52,7 @@ namespace PresentationLayer.Controllers.db
         [HttpGet("{idRent}/{idItem}")]
         public async Task<IActionResult> GetId(int idRent, int idItem)
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -79,7 +80,7 @@ namespace PresentationLayer.Controllers.db
         [HttpPost]
         public async Task<IActionResult> Add([FromBody] ItemsInRent itemsInRent)
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -109,7 +110,7 @@ namespace PresentationLayer.Controllers.db
         [HttpDelete("{idRent}/{idItem}")]
         public async Task<IActionResult> Delete(int idRent, int idItem)
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -127,18 +128,6 @@ namespace PresentationLayer.Controllers.db
                 return this.NotFound(new ErrorMessage { message = "token died" });
             }
             
-        }
-
-        public string TokenFromHeader(HttpRequest request)
-        {
-            var re = Request;
-            var headers = re.Headers;
-            string token = "";
-            if (headers.ContainsKey("token"))
-            {
-                token = headers["token"];
-            }
-            return token;
         }
     }
 }

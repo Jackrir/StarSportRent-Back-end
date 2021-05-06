@@ -248,6 +248,37 @@ namespace BusinessLogicLayer
             return result.ToArray();
         }
 
+        public async Task<Item[]> GetItemType(int itemId, int categoryId, IRepository repository)
+        {
+            IEnumerable<TypeOfItem> types = await repository.GetRangeAsync<TypeOfItem>(true, x => x.CategoryId == categoryId);
+            int needType = 0;
+            foreach(TypeOfItem element in types)
+            {
+                TypeItem t = await repository.GetAsync<TypeItem>(true, x => x.ItemId == itemId && x.TypeId == element.TypeId);
+                if(t != null)
+                {
+                    needType = t.TypeId;
+                    break;
+                }
+            }
+            IEnumerable<TypeItem> typeItems = await repository.GetRangeAsync<TypeItem>(true, x => x.TypeId == needType);
+            List<Item> items = new List<Item>();
+            foreach(TypeItem element in typeItems)
+            {
+                Item t = await repository.GetAsync<Item>(true, x => x.ItemId == element.ItemId && x.ItemId != itemId && x.Status == "Ok");
+                if(t != null)
+                {
+                    t.Maintenances = null;
+                    t.Bookings = null;
+                    t.ItemsInRents = null;
+                    t.TypeItems = null;
+                    items.Add(t);
+                }
+                
+            }
+            return items.ToArray();
+        }
+
         private Item ItemDeletRef(Item item)
         {
             item.Bookings = null;

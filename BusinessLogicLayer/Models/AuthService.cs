@@ -82,6 +82,12 @@ namespace BusinessLogicLayer.Models
             }
         }
 
+        public async Task<User> GetUser(string rt)
+        {
+            Token token = await this.repository.GetAsync<Token>(true, x => x.JWT == rt);
+            return await this.repository.GetAsync<User>(true, x => x.UserId == token.UserId);
+        }
+
         public async Task<(bool,string)> CheckToken(string token)
         {
             Token data = await this.repository.GetAsync<Token>(true, x => x.JWT == token);

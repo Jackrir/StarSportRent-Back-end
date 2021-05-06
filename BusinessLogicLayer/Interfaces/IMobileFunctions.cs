@@ -14,5 +14,7 @@ namespace BusinessLogicLayer.Interfaces
         Task<bool> CreateBooking(Booking booking, IRepository repository);
 
         Task<Item[]> GetSetByCategory(int categoryId, IRepository repository);
+
+        Task<Item[]> GetItemType(int itemId, int categoryId, IRepository repository);
     }
 }

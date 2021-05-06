@@ -310,7 +310,7 @@ namespace BusinessLogicLayer.Models
                         {
                             Name = reader.GetValue(1).ToString(),
                             URLphoto = reader.GetValue(2).ToString(),
-                            Info = reader.GetValue(3).ToString(),
+                            Info = reader.GetValue(3)?.ToString() ?? "",
                             CostPerHour = Convert.ToInt32(reader.GetValue(4).ToString()),
                             Status = reader.GetValue(5).ToString(),
                             Cost = Convert.ToInt32(reader.GetValue(6).ToString()),

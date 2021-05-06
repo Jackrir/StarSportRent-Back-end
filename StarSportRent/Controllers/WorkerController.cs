@@ -4,6 +4,7 @@ using DataAccessLayer.Interfaces;
 using DataAccessLayer.Models.Entyties;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using PresentationLayer.API;
 using PresentationLayer.API.Requests;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,7 @@ namespace PresentationLayer.Controllers
         [HttpGet]
         public async Task<IActionResult> GetRentInRent()
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -56,7 +57,7 @@ namespace PresentationLayer.Controllers
         [HttpGet]
         public async Task<IActionResult> GetDelayRent()
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -82,7 +83,7 @@ namespace PresentationLayer.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> CalculateRent(int id)
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -102,7 +103,7 @@ namespace PresentationLayer.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> PayRent(int id)
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -139,7 +140,7 @@ namespace PresentationLayer.Controllers
         [HttpGet]
         public async Task<IActionResult> GetItemStorage()
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -168,7 +169,7 @@ namespace PresentationLayer.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> OkToMaintenance(int id)
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -198,7 +199,7 @@ namespace PresentationLayer.Controllers
         [HttpGet]
         public async Task<IActionResult> GetItemMaintenance()
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -227,7 +228,7 @@ namespace PresentationLayer.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> MaintenanceToOK(int id)
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -259,7 +260,7 @@ namespace PresentationLayer.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserBooking(int id)
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -290,7 +291,7 @@ namespace PresentationLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> CostRentBooking([FromBody] RentBookingRequest request)
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -310,7 +311,7 @@ namespace PresentationLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> SuccessUserBooking([FromBody] RentBookingRequest request)
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -331,7 +332,7 @@ namespace PresentationLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> GetRentCost([FromBody] RentRequest request)
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -351,7 +352,7 @@ namespace PresentationLayer.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateRent([FromBody] CreateRentRequest request)
         {
-            string token = this.TokenFromHeader(Request);
+            string token = Taker.TokenFromHeader(Request);
             AuthService service = new AuthService(repository);
             var (checktoken, role) = await service.CheckToken(token);
             if (checktoken)
@@ -367,19 +368,6 @@ namespace PresentationLayer.Controllers
             {
                 return this.NotFound(new ErrorMessage { message = "token died" });
             }
-        }
-
-
-        public string TokenFromHeader(HttpRequest request)
-        {
-            var re = Request;
-            var headers = re.Headers;
-            string token = "";
-            if (headers.ContainsKey("token"))
-            {
-                token = headers["token"];
-            }
-            return token;
         }
     }
 }
