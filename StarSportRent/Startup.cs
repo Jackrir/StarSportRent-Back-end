@@ -52,6 +52,7 @@ namespace StarSportRent
                         .SetIsOriginAllowed((host) => true)
                         .AllowAnyHeader());
             });
+            services.AddSignalR();
         }
 
 
@@ -74,6 +75,7 @@ namespace StarSportRent
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<IoTHub>("/api/hubs/notifications");
             });
         }
     }
