@@ -29,7 +29,7 @@ namespace PresentationLayer.Controllers
         [HttpPost]
         public async Task Post([FromBody]IoTMessage message)
         {
-            Item item = await repository.GetAsync<Item>(true, x => x.ItemId == Convert.ToInt32(message));
+            Item item = await repository.GetAsync<Item>(true, x => x.ItemId == Convert.ToInt32(message) && x.Status != "Rent");
             if(item != null)
             {
                 await _chatHub.Clients.All.ReceiveMessage(message);
