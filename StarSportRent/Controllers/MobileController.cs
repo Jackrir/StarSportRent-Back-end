@@ -136,7 +136,7 @@ namespace PresentationLayer.Controllers
             if (checktoken)
             {
                 User user = await service.GetUser(token);
-                IEnumerable<Rent> rents = await this.repository.GetRangeAsync<Rent>(true, x => x.UserId == user.UserId && x.Status == "Finish");
+                IEnumerable<Rent> rents = await this.repository.GetRangeAsync<Rent>(true, x => x.UserId == user.UserId && x.Status == "Rent");
                 foreach (Rent el in rents)
                 {
                     el.User = null;

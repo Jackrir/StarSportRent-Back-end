@@ -1,6 +1,8 @@
 ﻿using BusinessLogicLayer.API.Requests;
 using BusinessLogicLayer.Interfaces;
 using BusinessLogicLayer.Models;
+using DataAccessLayer.Interfaces;
+using DataAccessLayer.Models.Entyties;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -16,16 +18,22 @@ namespace PresentationLayer.Controllers
     public class IoTController : ControllerBase
     {
         private readonly IHubContext<IoTHub, IIoTHub> _chatHub;
+        private readonly IRepository repository;
 
-        public IoTController(IHubContext<IoTHub, IIoTHub> chatHub)
+        public IoTController(IHubContext<IoTHub, IIoTHub> chatHub, IRepository repository)
         {
             _chatHub = chatHub;
+            this.repository = repository;
         }
 
         [HttpPost]
         public async Task Post([FromBody]IoTMessage message)
         {
-            await _chatHub.Clients.All.ReceiveMessage(message);
+            Item item = await repository.GetAsync<Item>(true, x => x.ItemId == Convert.ToInt32(message));
+            if(item != null)
+            {
+                await _chatHub.Clients.All.ReceiveMessage(message);
+            }
         }
     }
 }
